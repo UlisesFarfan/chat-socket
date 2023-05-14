@@ -16,6 +16,7 @@ const removeUser = (socketId) => {
 };
 
 const removeUserByUserId = (userId) => {
+    
     users = users.filter((user) => user._id !== userId);
 };
 
