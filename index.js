@@ -1,8 +1,12 @@
+require("dotenv/config")
+
 const io = require("socket.io")(8900, {
     cors: {
-        origin: "http://127.0.0.1:5173",
+        origin: process.env.URL_APP,
     },
 });
+
+const axios = require("axios")
 
 let users = [];
 
@@ -16,7 +20,7 @@ const removeUser = (socketId) => {
 };
 
 const removeUserByUserId = (userId) => {
-    
+
     users = users.filter((user) => user._id !== userId);
 };
 
@@ -41,13 +45,14 @@ io.on("connection", (socket) => {
     });
 
     //send and get message
-    socket.on("sendMessage", ({ message, user, chatId, otherUser }) => {
+    socket.on("sendMessage", ({ message, user, chatId, otherUser, name }) => {
         const userToSend = getUser(otherUser);
         if (userToSend) {
             io.to(userToSend.socketId).emit("getMessage", {
                 message,
                 user,
                 chatId,
+                name
             });
         }
     });
