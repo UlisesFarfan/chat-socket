@@ -37,39 +37,70 @@ const getMySocketId = (userId) => {
 
 io.on("connection", (socket) => {
     //when ceonnect
-    console.log("a user connected.", socket.id);
     //take userId and socketId from user
     socket.on("addUser", (userId) => {
         addUser(userId, socket.id);
-        io.emit("sentAllUsersConect", users);
+        io.to(socket.id).emit("connectedSuccessfully")
+        io.emit("userConnected");
     });
 
     //send and get message
-    socket.on("sendMessage", ({ message, user, chatId, otherUser, name }) => {
+    socket.on("sendMessage", ({ message, user, chatId, otherUser, name, date }) => {
         const userToSend = getUser(otherUser);
         if (userToSend) {
             io.to(userToSend.socketId).emit("getMessage", {
                 message,
                 user,
                 chatId,
-                name
+                name,
+                date
             });
         }
     });
 
-    socket.on("getAllUsersConect", (userId) => {
-        const usersToGet = getAllUsersConect(userId);
-        const MySocketId = getMySocketId(userId);
-        io.to(MySocketId.socketId).emit("sentAllUsersConect", usersToGet);
+    socket.on("getNewChat", ({ message, name, user, otherUser }) => {
+        const userToSend = getUser(otherUser)
+        console.log({ message, name, user, otherUser })
+        if (userToSend) {
+            io.to(userToSend.socketId).emit("getNewChat", {
+                message,
+                name,
+                user,
+                otherUser,
+            });
+        };
     });
+
+    // socket.on("getAllUsersConect", (userId) => {
+    //     const usersToGet = getAllUsersConect(userId);
+    //     const MySocketId = getMySocketId(userId);
+    //     io.to(MySocketId.socketId).emit("sentAllUsersConect", usersToGet);
+    // });
 
     //when disconnect
     socket.on("disconnect", () => {
         removeUser(socket.id);
-        io.emit("getUsers", users);
+        io.emit("userDisconnected");
     });
     socket.on("logout", (userId) => {
         removeUserByUserId(userId);
-        io.emit("sentAllUsersConect", users);
+        io.emit("userIsLogout");
+    });
+    socket.on("getUsersOnline", (data) => {
+        console.log(data)
+        let num = 0;
+        const userToSend = getUser(data.userId);
+        data.contacts?.forEach(el => {
+            const contact = getUser(el._id)
+            if (contact) {
+                num += 1
+            }
+        });
+        if (userToSend) {
+            io.to(userToSend.socketId).emit("sentKpiUsersConect", {
+                users_online: users.length,
+                friends_online: num
+            });
+        }
     })
 });
