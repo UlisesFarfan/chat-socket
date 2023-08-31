@@ -103,4 +103,12 @@ io.on("connection", (socket) => {
             });
         }
     })
+    socket.on("isThisUserChatConnected", (userId) => {
+        const user = getUser(userId)
+        console.log(user)
+        io.to(socket.id).emit("resUserChatConnected", {
+            user: userId,
+            isOnline: user ? true : false
+        });
+    });
 });
